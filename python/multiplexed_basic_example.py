@@ -6,7 +6,28 @@
 import time
 import smbus
 
+from Adafruit_GPIO import I2C
+
+TCA09548A_ADDR = 0x70
+
+tca = I2C.get_i2c_device(address=TCA09548A_ADDR)
+
 bus = smbus.SMBus(1) # 0 = /dev/i2c-0 (port I2C0), 1 = /dev/i2c-1 (port I2C1)
+
+def tca_select(channel):
+    """Select an individual channel."""
+    if channel > 7:
+        return
+    tca.writeRaw8(1 << channel)
+
+def tca_set(mask):
+    """Select one or more channels.
+           chan =   76543210
+           mask = 0b00000000
+    """
+    if mask > 0xff:
+        return
+    tca.writeRaw8(mask)
 
 DRV2605_ADDR = 0x5A
 
@@ -120,8 +141,12 @@ def playAllWaveforms():
     
     effect += 1
 
-
-
+# Test Haptic Motor Controller connected to SD0 and SC0
+tca_select(0)
 begin()
+playAllWaveforms()
 
+# Test Haptic Motor Controller connected to SD1 and SC1
+tca_select(1)
+begin()
 playAllWaveforms()
